@@ -329,6 +329,36 @@ describe('tolariaEditorFormatting behavior', () => {
     expect(formattingToolbarStore.setState).toHaveBeenCalledWith(false)
   })
 
+  it('hides the floating toolbar while the editor is composing IME text', () => {
+    const editor = createMockEditor('paragraph')
+    useBlockNoteEditorMock.mockReturnValue(editor)
+
+    render(<TolariaFormattingToolbarController />)
+
+    expect(positionPopoverState.lastProps).toEqual(expect.objectContaining({
+      position: { from: 1, to: 5 },
+      useFloatingOptions: expect.objectContaining({ open: true }),
+    }))
+
+    act(() => {
+      fireEvent.compositionStart(editor.domElement)
+    })
+
+    expect(positionPopoverState.lastProps).toEqual(expect.objectContaining({
+      position: undefined,
+      useFloatingOptions: expect.objectContaining({ open: false }),
+    }))
+
+    act(() => {
+      fireEvent.compositionEnd(editor.domElement)
+    })
+
+    expect(positionPopoverState.lastProps).toEqual(expect.objectContaining({
+      position: { from: 1, to: 5 },
+      useFloatingOptions: expect.objectContaining({ open: true }),
+    }))
+  })
+
   it('does not open the floating toolbar when the editor anchor element is unavailable', () => {
     const editor = createMockEditor()
     editor.domElement = document.createElement('div')
